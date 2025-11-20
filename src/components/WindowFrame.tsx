@@ -72,6 +72,8 @@ export const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(
                     <div className="flex items-center gap-1">
                         <button
                             onClick={handleRefresh}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
                             className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
                             title="Refresh"
                         >
@@ -79,6 +81,8 @@ export const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(
                         </button>
                         <button
                             onClick={() => removeWindow(window.id)}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
                             className="p-1 hover:bg-red-900/50 rounded text-gray-400 hover:text-red-400 transition-colors"
                             title="Close"
                         >
