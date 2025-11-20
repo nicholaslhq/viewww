@@ -3,7 +3,8 @@ import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import type { WindowItem, Profile } from '../types';
 import { calculateDefaultWindowSize } from '../utils/responsive';
-import { STORAGE_KEYS } from '../constants';
+import { findNextAvailablePosition } from '../utils/layout';
+import { STORAGE_KEYS, GRID_CONFIG } from '../constants';
 
 /**
  * Application state interface
@@ -12,6 +13,7 @@ interface AppState {
     // State
     profiles: Profile[];
     activeProfileId: string | null;
+    theme: 'light' | 'dark' | 'system';
 
     // Profile Actions
     addProfile: (name: string) => void;
@@ -25,6 +27,9 @@ interface AppState {
     addWindow: (url: string, w?: number, h?: number) => void;
     removeWindow: (windowId: string) => void;
     updateWindow: (windowId: string, updates: Partial<WindowItem>, profileId?: string) => void;
+
+    // Theme Actions
+    setTheme: (theme: 'light' | 'dark' | 'system') => void;
 }
 
 /**
@@ -36,6 +41,7 @@ export const useStore = create<AppState>()(
             // ==================== State ====================
             profiles: [],
             activeProfileId: null,
+            theme: 'system',
 
             // ==================== Profile Actions ====================
 
@@ -151,8 +157,11 @@ export const useStore = create<AppState>()(
              * @param h - Optional custom height
              */
             addWindow: (url, w?, h?) => {
-                const { activeProfileId } = get();
+                const { activeProfileId, profiles } = get();
                 if (!activeProfileId) return;
+
+                const activeProfile = profiles.find((p) => p.id === activeProfileId);
+                if (!activeProfile) return;
 
                 // Calculate responsive defaults using utility function
                 const { w: defaultW, h: defaultH } = calculateDefaultWindowSize(
@@ -161,12 +170,22 @@ export const useStore = create<AppState>()(
                     h
                 );
 
+                // Find the first available position
+                // We use the 'lg' breakpoint column count (12) as the default grid width
+                // This ensures consistent positioning logic
+                const { x, y } = findNextAvailablePosition(
+                    activeProfile.layout,
+                    defaultW,
+                    defaultH,
+                    GRID_CONFIG.cols.lg
+                );
+
                 const newWindow: WindowItem = {
                     id: uuidv4(),
                     url,
                     title: 'New Window',
-                    x: 0,
-                    y: Infinity, // Puts it at the bottom
+                    x,
+                    y,
                     w: defaultW,
                     h: defaultH,
                     profileId: activeProfileId,
@@ -228,6 +247,14 @@ export const useStore = create<AppState>()(
                     ),
                 }));
             },
+
+            // ==================== Theme Actions ====================
+
+            /**
+             * Sets the application theme
+             * @param theme - Theme mode
+             */
+            setTheme: (theme) => set({ theme }),
         }),
         {
             name: STORAGE_KEYS.viewwwStorage,

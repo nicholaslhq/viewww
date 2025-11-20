@@ -46,7 +46,7 @@ export const GridCanvas: React.FC = React.memo(() => {
     if (!mounted) return null;
 
     return (
-        <div className="w-full h-full overflow-auto bg-gray-950 p-4">
+        <div className="w-full h-full overflow-auto bg-transparent p-4">
             <ResponsiveGridLayout
                 className="layout"
                 layouts={{ lg: gridLayout }}
@@ -56,6 +56,7 @@ export const GridCanvas: React.FC = React.memo(() => {
                 draggableHandle=".drag-handle"
                 onLayoutChange={handleLayoutChange}
                 margin={GRID_CONFIG.margin}
+                compactType={null}
             >
                 {layout.map((window) => (
                     <div key={window.id}>

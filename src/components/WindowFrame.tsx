@@ -55,38 +55,51 @@ export const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(
             <div
                 ref={ref}
                 style={style}
-                className={`flex flex-col bg-gray-900 border border-gray-700 rounded-lg overflow-hidden shadow-lg ${className}`}
+                className={`
+                    group flex flex-col 
+                    bg-white dark:bg-gray-900 
+                    border border-gray-200 dark:border-gray-700 
+                    rounded-xl overflow-hidden 
+                    shadow-xl dark:shadow-black/50 
+                    ${className}
+                `}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
                 onTouchEnd={onTouchEnd}
                 {...props}
             >
                 {/* Header / Drag Handle */}
-                <div className="drag-handle h-8 bg-gray-800 flex items-center justify-between px-2 cursor-grab active:cursor-grabbing select-none border-b border-gray-700">
+                <div className="
+                    drag-handle h-9 
+                    bg-gray-50 dark:bg-gray-800 
+                    flex items-center justify-between px-3 
+                    cursor-grab active:cursor-grabbing select-none 
+                    border-b border-gray-200 dark:border-gray-700
+                ">
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <GripHorizontal size={16} className="text-gray-500" />
-                        <span className="text-xs text-gray-300 truncate font-medium" title={window.url}>
+                        <GripHorizontal size={16} className="text-gray-400 dark:text-gray-500" />
+                        <span className="text-xs text-gray-600 dark:text-gray-300 truncate font-medium" title={window.title || window.url}>
                             {window.title || window.url}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                             onClick={handleRefresh}
                             onMouseDown={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
-                            className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
+                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                             title="Refresh"
                         >
-                            <RefreshCw size={14} />
+                            <RefreshCw size={12} />
                         </button>
                         <button
                             onClick={() => removeWindow(window.id)}
                             onMouseDown={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
-                            className="p-1 hover:bg-red-900/50 rounded text-gray-400 hover:text-red-400 transition-colors"
+                            className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                             title="Close"
                         >
-                            <X size={14} />
+                            <X size={12} />
                         </button>
                     </div>
                 </div>
