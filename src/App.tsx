@@ -212,7 +212,13 @@ function App() {
           }
         }}
         title="Delete Profile"
-        message="Are you sure you want to delete this profile? This action cannot be undone."
+        message={
+          <>
+            Are you sure you want to delete "{profiles.find(p => p.id === deleteConfirmation)?.name}"?
+            <br />
+            This action cannot be undone.
+          </>
+        }
       />
     </div>
   );

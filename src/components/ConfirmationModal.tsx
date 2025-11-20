@@ -6,7 +6,7 @@ interface ConfirmationModalProps {
     onClose: () => void;
     onConfirm: () => void;
     title: string;
-    message: string;
+    message: React.ReactNode;
     confirmLabel?: string;
     cancelLabel?: string;
     confirmVariant?: 'danger' | 'primary';
@@ -48,7 +48,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 </div>
 
                 <div className="p-6">
-                    <p className="text-gray-300">{message}</p>
+                    <div className="text-gray-300">{message}</div>
                 </div>
 
                 <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-800 bg-gray-900/50">
