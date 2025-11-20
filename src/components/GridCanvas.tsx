@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import { useStore } from '../store/useStore';
 import { WindowFrame } from './WindowFrame';
+import { windowsToGridLayout, mergeGridLayoutToWindows, ensureProfileId } from '../utils/layout';
+import { GRID_CONFIG } from '../constants';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-export const GridCanvas: React.FC = () => {
+export const GridCanvas: React.FC = React.memo(() => {
     const { activeProfileId, profiles, updateProfileLayout } = useStore();
     const [mounted, setMounted] = useState(false);
 
@@ -25,44 +27,21 @@ export const GridCanvas: React.FC = () => {
 
         const needsUpdate = activeProfile.layout.some(w => !w.profileId);
         if (needsUpdate) {
-            const updatedLayout = activeProfile.layout.map(w => ({
-                ...w,
-                profileId: w.profileId || activeProfileId
-            }));
+            const updatedLayout = ensureProfileId(activeProfile.layout, activeProfileId);
             updateProfileLayout(activeProfileId, updatedLayout);
         }
     }, [activeProfileId, activeProfile, updateProfileLayout]);
 
-    // Transform our WindowItem[] to react-grid-layout's Layout[]
-    const gridLayout = layout.map((item) => ({
-        i: item.id,
-        x: item.x,
-        y: item.y,
-        w: item.w,
-        h: item.h,
-    }));
+    // Transform WindowItem[] to react-grid-layout's Layout[]
+    const gridLayout = windowsToGridLayout(layout);
 
-    const handleLayoutChange = (currentLayout: Layout[]) => {
+    const handleLayoutChange = useCallback((currentLayout: Layout[]) => {
         if (!activeProfileId) return;
 
-        // Map back to our WindowItem format
-        // We need to preserve other properties like url and title
-        const newLayout = currentLayout.map((l) => {
-            const original = layout.find((w) => w.id === l.i);
-            if (!original) return null;
-            return {
-                ...original,
-                x: l.x,
-                y: l.y,
-                w: l.w,
-                h: l.h,
-                // Ensure profileId is always set (fix for existing windows)
-                profileId: original.profileId || activeProfileId,
-            };
-        }).filter(Boolean) as any[];
-
+        // Merge grid layout changes back to WindowItem format
+        const newLayout = mergeGridLayoutToWindows(currentLayout, layout, activeProfileId);
         updateProfileLayout(activeProfileId, newLayout);
-    };
+    }, [activeProfileId, layout, updateProfileLayout]);
 
     if (!mounted) return null;
 
@@ -71,12 +50,12 @@ export const GridCanvas: React.FC = () => {
             <ResponsiveGridLayout
                 className="layout"
                 layouts={{ lg: gridLayout }}
-                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                rowHeight={30}
+                breakpoints={GRID_CONFIG.breakpoints}
+                cols={GRID_CONFIG.cols}
+                rowHeight={GRID_CONFIG.rowHeight}
                 draggableHandle=".drag-handle"
                 onLayoutChange={handleLayoutChange}
-                margin={[10, 10]}
+                margin={GRID_CONFIG.margin}
             >
                 {layout.map((window) => (
                     <div key={window.id}>
@@ -86,4 +65,7 @@ export const GridCanvas: React.FC = () => {
             </ResponsiveGridLayout>
         </div>
     );
-};
+});
+
+GridCanvas.displayName = 'GridCanvas';
+

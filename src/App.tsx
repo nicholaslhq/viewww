@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Plus, Layout, Trash2, Monitor, Pencil, Copy } from 'lucide-react';
 import { useStore } from './store/useStore';
 import { GridCanvas } from './components/GridCanvas';
 import { ConfirmationModal } from './components/ConfirmationModal';
+import { useProfileInitialization } from './hooks/useProfileInitialization';
+import { normalizeUrl } from './utils/url';
+import { APP_VERSION, APP_MODE } from './constants';
 
 function App() {
   const {
@@ -22,6 +25,12 @@ function App() {
   const [editName, setEditName] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState<string | null>(null);
 
+  // Initialize default profile if none exist
+  useProfileInitialization({
+    profileCount: profiles.length,
+    addProfile,
+  });
+
   const handleSaveProfileName = (id: string) => {
     if (editName.trim()) {
       updateProfileName(id, editName.trim());
@@ -30,22 +39,11 @@ function App() {
     setEditName('');
   };
 
-  // Initialize with a default profile if none exist
-  useEffect(() => {
-    if (profiles.length === 0) {
-      addProfile('Default Profile');
-    }
-  }, [profiles.length, addProfile]);
-
   const handleAddWindow = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUrl) return;
 
-    let url = newUrl;
-    if (!url.startsWith('http')) {
-      url = `https://${url}`;
-    }
-
+    const url = normalizeUrl(newUrl);
     addWindow(url);
     setNewUrl('');
   };
@@ -176,7 +174,7 @@ function App() {
         </div>
 
         <div className="p-4 border-t border-gray-800 text-xs text-gray-600 text-center">
-          v1.0.0 • Local Mode
+          {APP_VERSION} • {APP_MODE}
         </div>
       </div>
 
@@ -221,3 +219,4 @@ function App() {
 }
 
 export default App;
+

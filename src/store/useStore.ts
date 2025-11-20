@@ -1,52 +1,48 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+import type { WindowItem, Profile } from '../types';
+import { calculateDefaultWindowSize } from '../utils/responsive';
+import { STORAGE_KEYS } from '../constants';
 
-export interface WindowItem {
-    id: string;
-    url: string;
-    title: string;
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    scrollX?: number;
-    scrollY?: number;
-    profileId?: string; // Track which profile this window belongs to
-}
-
-export interface Profile {
-    id: string;
-    name: string;
-    createdAt: number;
-    updatedAt: number;
-    layout: WindowItem[];
-}
-
+/**
+ * Application state interface
+ */
 interface AppState {
+    // State
     profiles: Profile[];
     activeProfileId: string | null;
 
-    // Actions
+    // Profile Actions
     addProfile: (name: string) => void;
     removeProfile: (id: string) => void;
     setActiveProfile: (id: string) => void;
     updateProfileLayout: (profileId: string, layout: WindowItem[]) => void;
+    updateProfileName: (id: string, name: string) => void;
+    duplicateProfile: (id: string) => void;
 
+    // Window Actions
     addWindow: (url: string, w?: number, h?: number) => void;
     removeWindow: (windowId: string) => void;
     updateWindow: (windowId: string, updates: Partial<WindowItem>, profileId?: string) => void;
-
-    updateProfileName: (id: string, name: string) => void;
-    duplicateProfile: (id: string) => void;
 }
 
+/**
+ * Global application store using Zustand
+ */
 export const useStore = create<AppState>()(
     persist(
         (set, get) => ({
+            // ==================== State ====================
             profiles: [],
             activeProfileId: null,
 
+            // ==================== Profile Actions ====================
+
+            /**
+             * Creates a new profile and sets it as active
+             * @param name - Name for the new profile
+             */
             addProfile: (name) => {
                 const newProfile: Profile = {
                     id: uuidv4(),
@@ -61,117 +57,64 @@ export const useStore = create<AppState>()(
                 }));
             },
 
+            /**
+             * Removes a profile by ID
+             * If the removed profile is active, switches to the first available profile
+             * @param id - Profile ID to remove
+             */
             removeProfile: (id) => {
                 set((state) => {
                     const newProfiles = state.profiles.filter((p) => p.id !== id);
                     return {
                         profiles: newProfiles,
-                        activeProfileId: state.activeProfileId === id ? (newProfiles[0]?.id || null) : state.activeProfileId,
+                        activeProfileId:
+                            state.activeProfileId === id
+                                ? (newProfiles[0]?.id || null)
+                                : state.activeProfileId,
                     };
                 });
             },
 
+            /**
+             * Sets the active profile
+             * @param id - Profile ID to activate
+             */
             setActiveProfile: (id) => set({ activeProfileId: id }),
 
+            /**
+             * Updates the layout of a specific profile
+             * @param profileId - Profile ID to update
+             * @param layout - New layout configuration
+             */
             updateProfileLayout: (profileId, layout) => {
                 set((state) => ({
                     profiles: state.profiles.map((p) =>
-                        p.id === profileId ? { ...p, layout, updatedAt: Date.now() } : p
-                    ),
-                }));
-            },
-
-            addWindow: (url, w?, h?) => {
-                const { activeProfileId } = get();
-                if (!activeProfileId) return;
-
-                // Calculate responsive defaults based on screen width
-                let defaultW = w;
-                let defaultH = h;
-
-                if (defaultW === undefined || defaultH === undefined) {
-                    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
-
-                    // Determine default width and height based on breakpoints
-                    if (screenWidth < 480) {
-                        // Mobile: full width, tall
-                        defaultW = defaultW ?? 2;
-                        defaultH = defaultH ?? 8;
-                    } else if (screenWidth < 768) {
-                        // Small tablets: full width, tall
-                        defaultW = defaultW ?? 4;
-                        defaultH = defaultH ?? 8;
-                    } else if (screenWidth < 996) {
-                        // Tablets: half width, tall
-                        defaultW = defaultW ?? 3;
-                        defaultH = defaultH ?? 10;
-                    } else {
-                        // Desktop: narrower and taller for better content viewing
-                        defaultW = defaultW ?? 4;
-                        defaultH = defaultH ?? 10;
-                    }
-                }
-
-                const newWindow: WindowItem = {
-                    id: uuidv4(),
-                    url,
-                    title: 'New Window',
-                    x: 0,
-                    y: Infinity, // Puts it at the bottom
-                    w: defaultW,
-                    h: defaultH,
-                    profileId: activeProfileId, // Track which profile owns this window
-                };
-
-                set((state) => ({
-                    profiles: state.profiles.map((p) =>
-                        p.id === activeProfileId
-                            ? { ...p, layout: [...p.layout, newWindow], updatedAt: Date.now() }
+                        p.id === profileId
+                            ? { ...p, layout, updatedAt: Date.now() }
                             : p
                     ),
                 }));
             },
 
-            removeWindow: (windowId) => {
-                const { activeProfileId } = get();
-                if (!activeProfileId) return;
-
-                set((state) => ({
-                    profiles: state.profiles.map((p) =>
-                        p.id === activeProfileId
-                            ? { ...p, layout: p.layout.filter((w) => w.id !== windowId), updatedAt: Date.now() }
-                            : p
-                    ),
-                }));
-            },
-
-            updateWindow: (windowId, updates, profileId?) => {
-                const { activeProfileId } = get();
-                // Use provided profileId or fall back to activeProfileId
-                const targetProfileId = profileId || activeProfileId;
-                if (!targetProfileId) return;
-
-                set((state) => ({
-                    profiles: state.profiles.map((p) =>
-                        p.id === targetProfileId
-                            ? {
-                                ...p,
-                                layout: p.layout.map((w) => (w.id === windowId ? { ...w, ...updates } : w)),
-                                updatedAt: Date.now(),
-                            }
-                            : p
-                    ),
-                }));
-            },
-
+            /**
+             * Updates a profile's name
+             * @param id - Profile ID to update
+             * @param name - New profile name
+             */
             updateProfileName: (id, name) => {
                 set((state) => ({
                     profiles: state.profiles.map((p) =>
-                        p.id === id ? { ...p, name, updatedAt: Date.now() } : p
+                        p.id === id
+                            ? { ...p, name, updatedAt: Date.now() }
+                            : p
                     ),
                 }));
             },
 
+            /**
+             * Duplicates an existing profile with all its windows
+             * @param id - Profile ID to duplicate
+             */
             duplicateProfile: (id) => {
                 const { profiles } = get();
                 const profileToDuplicate = profiles.find((p) => p.id === id);
@@ -188,7 +131,7 @@ export const useStore = create<AppState>()(
                     layout: profileToDuplicate.layout.map(w => ({
                         ...w,
                         id: uuidv4(),
-                        profileId: newProfileId  // Use the new profile's ID, not a random UUID
+                        profileId: newProfileId,
                     })),
                 };
 
@@ -197,9 +140,97 @@ export const useStore = create<AppState>()(
                     activeProfileId: newProfile.id,
                 }));
             },
+
+            // ==================== Window Actions ====================
+
+            /**
+             * Adds a new window to the active profile
+             * Window size is calculated based on screen width if not provided
+             * @param url - URL to display in the window
+             * @param w - Optional custom width
+             * @param h - Optional custom height
+             */
+            addWindow: (url, w?, h?) => {
+                const { activeProfileId } = get();
+                if (!activeProfileId) return;
+
+                // Calculate responsive defaults using utility function
+                const { w: defaultW, h: defaultH } = calculateDefaultWindowSize(
+                    typeof window !== 'undefined' ? window.innerWidth : 1200,
+                    w,
+                    h
+                );
+
+                const newWindow: WindowItem = {
+                    id: uuidv4(),
+                    url,
+                    title: 'New Window',
+                    x: 0,
+                    y: Infinity, // Puts it at the bottom
+                    w: defaultW,
+                    h: defaultH,
+                    profileId: activeProfileId,
+                };
+
+                set((state) => ({
+                    profiles: state.profiles.map((p) =>
+                        p.id === activeProfileId
+                            ? { ...p, layout: [...p.layout, newWindow], updatedAt: Date.now() }
+                            : p
+                    ),
+                }));
+            },
+
+            /**
+             * Removes a window from the active profile
+             * @param windowId - Window ID to remove
+             */
+            removeWindow: (windowId) => {
+                const { activeProfileId } = get();
+                if (!activeProfileId) return;
+
+                set((state) => ({
+                    profiles: state.profiles.map((p) =>
+                        p.id === activeProfileId
+                            ? {
+                                ...p,
+                                layout: p.layout.filter((w) => w.id !== windowId),
+                                updatedAt: Date.now()
+                            }
+                            : p
+                    ),
+                }));
+            },
+
+            /**
+             * Updates properties of a specific window
+             * @param windowId - Window ID to update
+             * @param updates - Partial window properties to update
+             * @param profileId - Optional profile ID (defaults to active profile)
+             */
+            updateWindow: (windowId, updates, profileId?) => {
+                const { activeProfileId } = get();
+                // Use provided profileId or fall back to activeProfileId
+                const targetProfileId = profileId || activeProfileId;
+                if (!targetProfileId) return;
+
+                set((state) => ({
+                    profiles: state.profiles.map((p) =>
+                        p.id === targetProfileId
+                            ? {
+                                ...p,
+                                layout: p.layout.map((w) =>
+                                    w.id === windowId ? { ...w, ...updates } : w
+                                ),
+                                updatedAt: Date.now(),
+                            }
+                            : p
+                    ),
+                }));
+            },
         }),
         {
-            name: 'viewww-storage',
+            name: STORAGE_KEYS.viewwwStorage,
         }
     )
 );
