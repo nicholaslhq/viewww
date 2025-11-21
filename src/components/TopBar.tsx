@@ -21,24 +21,24 @@ export function TopBar({ isSidebarOpen, setIsSidebarOpen, activeProfileName, onA
     const hasWindows = (activeProfile?.layout.length ?? 0) > 0;
 
     return (
-        <div className="h-14 flex items-center justify-between px-4 md:px-6 z-30">
-            <div className="flex items-center gap-4">
+        <div className="h-14 flex items-center justify-between px-4 md:px-6 z-30 gap-4">
+            <div className="flex items-center gap-4 min-w-0">
                 <button
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 dark:text-gray-400 transition-colors"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 dark:text-gray-400 transition-colors shrink-0"
                 >
                     <Layout size={20} />
                 </button>
 
-                <div className="flex flex-col">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Active View</span>
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+                <div className="flex flex-col min-w-0">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider truncate">Active View</span>
+                    <h2 className="text-sm font-semibold text-gray-900 dark:text-white truncate" title={activeProfileName}>
                         {activeProfileName || 'No Profile Selected'}
                     </h2>
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 shrink-0">
                 {isUndoAvailable ? (
                     <motion.button
                         initial={{ opacity: 0, scale: 0.9 }}

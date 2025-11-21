@@ -132,10 +132,15 @@ export function Sidebar({ isOpen, setIsOpen, onEditProfile, onDeleteProfile }: S
                                     />
                                 ) : (
                                     <>
-                                        <span className="truncate text-sm font-medium flex-1">{profile.name}</span>
+                                        <span
+                                            className="truncate text-sm font-medium flex-1 min-w-0"
+                                            title={profile.name}
+                                        >
+                                            {profile.name}
+                                        </span>
 
                                         {/* Profile Actions */}
-                                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1 shrink-0">
                                             <button
                                                 onClick={(e) => handleStartEdit(e, profile)}
                                                 className="p-1 hover:text-blue-500 transition-colors"
