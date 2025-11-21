@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import type { WindowItem, Profile } from '../types';
 import { calculateDefaultWindowSize } from '../utils/responsive';
-import { findNextAvailablePosition } from '../utils/layout';
+import { findNextAvailablePosition, packWindows } from '../utils/layout';
 import { STORAGE_KEYS, GRID_CONFIG } from '../constants';
 
 /**
@@ -14,6 +14,9 @@ interface AppState {
     profiles: Profile[];
     activeProfileId: string | null;
     theme: 'light' | 'dark' | 'system';
+    lastLayoutSnapshot: WindowItem[] | null;
+    isUndoAvailable: boolean;
+    isProgrammaticUpdate: boolean;
 
     // Profile Actions
     addProfile: (name: string) => void;
@@ -22,6 +25,8 @@ interface AppState {
     updateProfileLayout: (profileId: string, layout: WindowItem[]) => void;
     updateProfileName: (id: string, name: string) => void;
     duplicateProfile: (id: string) => void;
+    smartSortLayout: () => void;
+    undoSmartSort: () => void;
 
     // Window Actions
     addWindow: (url: string, w?: number, h?: number) => void;
@@ -42,6 +47,9 @@ export const useStore = create<AppState>()(
             profiles: [],
             activeProfileId: null,
             theme: 'system',
+            lastLayoutSnapshot: null,
+            isUndoAvailable: false,
+            isProgrammaticUpdate: false,
 
             // ==================== Profile Actions ====================
 
@@ -147,6 +155,56 @@ export const useStore = create<AppState>()(
                 }));
             },
 
+            /**
+             * Smart sorts the current profile's layout
+             */
+            smartSortLayout: () => {
+                const { activeProfileId, profiles } = get();
+                if (!activeProfileId) return;
+
+                const activeProfile = profiles.find((p) => p.id === activeProfileId);
+                if (!activeProfile) return;
+
+                // Calculate new packed layout
+                // Use 'lg' breakpoint columns (12) as default
+                const packedLayout = packWindows(activeProfile.layout, GRID_CONFIG.cols.lg);
+
+                // Update layout and save snapshot in a single set() call
+                set((state) => ({
+                    profiles: state.profiles.map((p) =>
+                        p.id === activeProfileId
+                            ? { ...p, layout: packedLayout, updatedAt: Date.now() }
+                            : p
+                    ),
+                    lastLayoutSnapshot: activeProfile.layout,
+                    isUndoAvailable: true,
+                    isProgrammaticUpdate: true, // Flag to prevent undo clearing
+                }));
+
+                // Reset flag after a short delay
+                setTimeout(() => {
+                    set({ isProgrammaticUpdate: false });
+                }, 50);
+            },
+
+            /**
+             * Undoes the last smart sort operation
+             */
+            undoSmartSort: () => {
+                const { activeProfileId, lastLayoutSnapshot } = get();
+                if (!activeProfileId || !lastLayoutSnapshot) return;
+
+                set((state) => ({
+                    profiles: state.profiles.map((p) =>
+                        p.id === activeProfileId
+                            ? { ...p, layout: lastLayoutSnapshot, updatedAt: Date.now() }
+                            : p
+                    ),
+                    lastLayoutSnapshot: null,
+                    isUndoAvailable: false,
+                }));
+            },
+
             // ==================== Window Actions ====================
 
             /**
@@ -162,6 +220,9 @@ export const useStore = create<AppState>()(
 
                 const activeProfile = profiles.find((p) => p.id === activeProfileId);
                 if (!activeProfile) return;
+
+                // Clear undo state when adding a new window
+                set({ isUndoAvailable: false, lastLayoutSnapshot: null });
 
                 // Calculate responsive defaults using utility function
                 const { w: defaultW, h: defaultH } = calculateDefaultWindowSize(
@@ -258,6 +319,13 @@ export const useStore = create<AppState>()(
         }),
         {
             name: STORAGE_KEYS.viewwwStorage,
+            partialize: (state) => ({
+                profiles: state.profiles,
+                activeProfileId: state.activeProfileId,
+                theme: state.theme,
+                // Exclude transient undo state from persistence
+                // lastLayoutSnapshot and isUndoAvailable should not persist
+            }),
         }
     )
 );

@@ -120,3 +120,80 @@ export function findNextAvailablePosition(
     // If no spot found (shouldn't happen given our search height), place at bottom
     return { x: 0, y: maxY };
 }
+
+/**
+ * Packs windows tightly into the grid to minimize gaps
+ * @param windows - Array of WindowItem objects to pack
+ * @param cols - Total number of columns in the grid
+ * @returns New array of WindowItem objects with updated positions
+ */
+export function packWindows(windows: WindowItem[], cols: number): WindowItem[] {
+    // Sort windows by position (top-to-bottom, left-to-right) to maintain relative order
+    const sortedWindows = [...windows].sort((a, b) => {
+        if (a.y === b.y) return a.x - b.x;
+        return a.y - b.y;
+    });
+
+    const packedWindows: WindowItem[] = [];
+    const occupied = new Set<string>();
+
+    // Helper to check if a position is free
+    const isPositionFree = (x: number, y: number, w: number, h: number) => {
+        for (let dy = 0; dy < h; dy++) {
+            for (let dx = 0; dx < w; dx++) {
+                if (occupied.has(`${x + dx},${y + dy}`)) return false;
+            }
+        }
+        return true;
+    };
+
+    // Helper to mark position as occupied
+    const markOccupied = (x: number, y: number, w: number, h: number) => {
+        for (let dy = 0; dy < h; dy++) {
+            for (let dx = 0; dx < w; dx++) {
+                occupied.add(`${x + dx},${y + dy}`);
+            }
+        }
+    };
+
+    // Place each window in the first available spot
+    for (const window of sortedWindows) {
+        let placed = false;
+        // Search for a spot starting from top-left
+        // We search up to a reasonable height. 
+        // In a packing algo, we shouldn't need to go much deeper than the current total height
+        const maxSearchY = Math.max(
+            ...packedWindows.map(w => w.y + w.h),
+            ...sortedWindows.map(w => w.y + w.h)
+        ) + window.h + 10;
+
+        for (let y = 0; y < maxSearchY; y++) {
+            for (let x = 0; x <= cols - window.w; x++) {
+                if (isPositionFree(x, y, window.w, window.h)) {
+                    packedWindows.push({
+                        ...window,
+                        x,
+                        y
+                    });
+                    markOccupied(x, y, window.w, window.h);
+                    placed = true;
+                    break;
+                }
+            }
+            if (placed) break;
+        }
+
+        // Fallback if no spot found (should be rare with dynamic height)
+        if (!placed) {
+            const lastY = Math.max(0, ...packedWindows.map(w => w.y + w.h));
+            packedWindows.push({
+                ...window,
+                x: 0,
+                y: lastY
+            });
+            markOccupied(0, lastY, window.w, window.h);
+        }
+    }
+
+    return packedWindows;
+}

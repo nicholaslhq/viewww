@@ -11,7 +11,7 @@ import 'react-resizable/css/styles.css';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 export const GridCanvas: React.FC = React.memo(() => {
-    const { activeProfileId, profiles, updateProfileLayout } = useStore();
+    const { activeProfileId, profiles, updateProfileLayout, isProgrammaticUpdate } = useStore();
     const [mounted, setMounted] = useState(false);
 
     const activeProfile = profiles.find((p) => p.id === activeProfileId);
@@ -41,7 +41,12 @@ export const GridCanvas: React.FC = React.memo(() => {
         // Merge grid layout changes back to WindowItem format
         const newLayout = mergeGridLayoutToWindows(currentLayout, layout, activeProfileId);
         updateProfileLayout(activeProfileId, newLayout);
-    }, [activeProfileId, layout, updateProfileLayout]);
+
+        // Only clear undo state if this is a user-initiated change (drag/resize)
+        if (!isProgrammaticUpdate) {
+            useStore.setState({ isUndoAvailable: false, lastLayoutSnapshot: null });
+        }
+    }, [activeProfileId, layout, updateProfileLayout, isProgrammaticUpdate]);
 
     if (!mounted) return null;
 
@@ -69,4 +74,3 @@ export const GridCanvas: React.FC = React.memo(() => {
 });
 
 GridCanvas.displayName = 'GridCanvas';
-

@@ -24,5 +24,4 @@ app.get('/proxy/metadata', metadataHandler);
 
 // Start server
 app.listen(config.port, () => {
-    console.log(`Proxy server running on http://localhost:${config.port}`);
 });
