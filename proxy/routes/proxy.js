@@ -26,7 +26,8 @@ export async function proxyHandler(req, res) {
             url: targetUrl,
             responseType: 'stream',
             headers: {
-                'User-Agent': config.userAgent
+                'User-Agent': config.userAgent,
+                ...config.defaultHeaders
             }
         });
 
