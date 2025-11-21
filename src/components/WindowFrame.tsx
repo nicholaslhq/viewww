@@ -68,21 +68,28 @@ export const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(
                 onTouchEnd={onTouchEnd}
                 {...props}
             >
-                {/* Header / Drag Handle */}
+                {/* Header */}
                 <div className="
-                    drag-handle h-9 
+                    h-9 
                     bg-gray-50 dark:bg-gray-800 
-                    flex items-center justify-between px-3 
-                    cursor-grab active:cursor-grabbing select-none 
+                    flex items-center justify-between 
                     border-b border-gray-200 dark:border-gray-700
                 ">
-                    <div className="flex items-center gap-2 overflow-hidden">
+                    {/* Drag Handle - Title Section */}
+                    <div className="
+                        drag-handle 
+                        flex items-center gap-2 overflow-hidden flex-1
+                        cursor-grab active:cursor-grabbing select-none
+                        px-3 h-full
+                    ">
                         <GripHorizontal size={16} className="text-gray-400 dark:text-gray-500" />
                         <span className="text-xs text-gray-600 dark:text-gray-300 truncate font-medium" title={window.title || window.url}>
                             {window.title || window.url}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                    {/* Buttons - Outside Drag Handle */}
+                    <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity px-3">
                         <button
                             onClick={handleRefresh}
                             onMouseDown={(e) => e.stopPropagation()}
