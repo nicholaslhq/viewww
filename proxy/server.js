@@ -19,6 +19,20 @@ app.get('/', (req, res) => {
     res.send('Viewww Proxy Server is running');
 });
 
+app.get('/debug-html', (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug</title>
+</head>
+<body>
+    <h1>Hello</h1>
+</body>
+</html>
+    `);
+});
+
 app.get('/proxy', proxyHandler);
 app.get('/proxy/metadata', metadataHandler);
 

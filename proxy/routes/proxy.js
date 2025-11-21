@@ -30,11 +30,14 @@ export async function proxyHandler(req, res) {
             }
         });
 
+        // Get the final URL (after redirects) or fallback to targetUrl
+        const finalUrl = response.request.res.responseUrl || targetUrl;
+
         // Filter and set headers
         filterHeaders(response.headers, res);
 
         // Create script injector and pipe response
-        const scriptInjector = createScriptInjector(windowId, config.scrollDebounceMs);
+        const scriptInjector = createScriptInjector(windowId, config.scrollDebounceMs, finalUrl);
         response.data.pipe(scriptInjector).pipe(res);
     } catch (error) {
         res.status(500).send(`Error fetching URL: ${error.message}`);
