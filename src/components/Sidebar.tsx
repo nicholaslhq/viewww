@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Monitor,
+    LayoutDashboard,
     Plus,
     Pencil,
     Copy,
@@ -81,14 +81,14 @@ export function Sidebar({ isOpen, setIsOpen, onEditProfile, onDeleteProfile }: S
             >
                 <div className="flex flex-col h-full overflow-hidden w-[280px]">
                     {/* Header */}
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                    <div className="relative p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-center">
                         <div className="flex items-center gap-2 text-blue-600 dark:text-blue-500">
-                            <Monitor className="w-6 h-6" />
+                            <LayoutDashboard className="w-6 h-6" />
                             <span className="font-bold text-lg tracking-tight text-gray-900 dark:text-white">Viewww</span>
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="md:hidden p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                            className="absolute right-4 md:hidden p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white"
                         >
                             <ChevronLeft size={20} />
                         </button>
