@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+        {
+            "source": "/proxy/metadata",
+            "destination": "/api/metadata"
+        },
+        {
+            "source": "/proxy",
+            "destination": "/api/proxy"
+        }
+    ]
+}

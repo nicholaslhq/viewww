@@ -3,9 +3,9 @@
  */
 
 // Proxy Configuration
-export const PROXY_BASE_URL = 'http://localhost:3001';
-export const PROXY_ENDPOINT = `${PROXY_BASE_URL}/proxy`;
-export const PROXY_METADATA_ENDPOINT = `${PROXY_BASE_URL}/proxy/metadata`;
+export const PROXY_BASE_URL = '';
+export const PROXY_ENDPOINT = `/proxy`;
+export const PROXY_METADATA_ENDPOINT = `/proxy/metadata`;
 
 // Default Window Sizes
 export const DEFAULT_WINDOW_SIZES = {
