@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# Viewww
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+![Viewww Screenshot](public/screenshot.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Viewww is a powerful, multi-view browser dashboard that allows you to manage and view multiple websites simultaneously in a customizable grid layout.
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Multi-Window Browsing**: Open and interact with multiple websites in a single tab.
+- **Smart Layouts**: Automatically organize windows with "Smart Sort" or customize your workspace with draggable and resizable frames.
+- **Profile Management**: Create, edit, duplicate, and delete profiles to switch between different workspace setups instantly.
+- **Proxy Support**: Built-in proxy server to bypass iframe restrictions (X-Frame-Options), ensuring compatibility with most websites.
+- **Mobile Responsive**: Optimized for all devices with a responsive sidebar and touch-friendly controls.
+- **Persistent State**: Your windows, layouts, and scroll positions are automatically saved.
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS
+- **State Management**: Zustand
+- **Backend**: Node.js, Express (for Proxy Server)
+- **Icons**: Lucide React
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Node.js (v18 or higher recommended)
+- npm or yarn
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd viewww
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Running the Application
+
+To run Viewww, you need to start both the frontend development server and the proxy server.
+
+1. Start the Proxy Server (required for loading websites):
+   ```bash
+   npm run proxy
+   ```
+
+2. Start the Frontend:
+   ```bash
+   npm run dev
+   ```
+
+3. Open your browser and navigate to `http://localhost:5173` (or the URL shown in your terminal).
+
+## Usage
+
+- **Add Window**: Enter a URL in the sidebar input and click "+" to add a new window.
+- **Manage Profiles**: Use the sidebar to switch between profiles or create new ones.
+- **Customize Layout**: Drag and resize windows to arrange them to your liking.
+- **Smart Sort**: Click the "Smart Sort" button to automatically arrange windows in a grid.
+
+## Troubleshooting
+
+- **Websites not loading**: Ensure the proxy server is running (`npm run proxy`). Some websites may still block being embedded even with the proxy.
+- **Proxy Error**: If you see proxy errors, check your terminal for any error messages from the proxy server.
+- **Port in use**: If you cannot start the server, make sure ports 5173 (frontend) and 3000 (proxy) are not in use.
