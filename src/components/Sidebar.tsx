@@ -6,7 +6,8 @@ import {
     Pencil,
     Copy,
     Trash2,
-    ChevronLeft
+    ChevronLeft,
+    GripVertical
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { ThemeToggle } from './ThemeToggle';
@@ -24,11 +25,14 @@ export function Sidebar({ isOpen, setIsOpen, onEditProfile, onDeleteProfile }: S
         activeProfileId,
         setActiveProfile,
         addProfile,
-        duplicateProfile
+        duplicateProfile,
+        reorderProfiles
     } = useStore();
 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editName, setEditName] = useState('');
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     const handleStartEdit = (e: React.MouseEvent, profile: { id: string, name: string }) => {
         e.stopPropagation();
@@ -47,6 +51,38 @@ export function Sidebar({ isOpen, setIsOpen, onEditProfile, onDeleteProfile }: S
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') handleSaveEdit();
         if (e.key === 'Escape') setEditingId(null);
+    };
+
+    // Drag and Drop Handlers
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+        // Set transparent drag image or custom one if needed
+        // e.dataTransfer.setDragImage(e.currentTarget, 0, 0);
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === index) return;
+        setDragOverIndex(index);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverIndex(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        if (draggedIndex !== null && draggedIndex !== index) {
+            reorderProfiles(draggedIndex, index);
+        }
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
     };
 
     return (
@@ -107,16 +143,24 @@ export function Sidebar({ isOpen, setIsOpen, onEditProfile, onDeleteProfile }: S
                             </button>
                         </div>
 
-                        {profiles.map(profile => (
+                        {profiles.map((profile, index) => (
                             <div
                                 key={profile.id}
+                                draggable={editingId !== profile.id}
+                                onDragStart={(e) => handleDragStart(e, index)}
+                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDragLeave={handleDragLeave}
+                                onDrop={(e) => handleDrop(e, index)}
+                                onDragEnd={handleDragEnd}
                                 onClick={() => setActiveProfile(profile.id)}
                                 className={`
-                  group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all
+                  group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all relative
                   ${activeProfileId === profile.id
                                         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-400'
                                     }
+                  ${draggedIndex === index ? 'opacity-50' : 'opacity-100'}
+                  ${dragOverIndex === index ? 'border-2 border-blue-500 border-dashed' : 'border-2 border-transparent'}
                 `}
                             >
                                 {editingId === profile.id ? (
@@ -132,6 +176,9 @@ export function Sidebar({ isOpen, setIsOpen, onEditProfile, onDeleteProfile }: S
                                     />
                                 ) : (
                                     <>
+                                        <div className="mr-1 text-gray-400 cursor-grab active:cursor-grabbing opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                            <GripVertical size={14} />
+                                        </div>
                                         <span
                                             className="truncate text-sm font-medium flex-1 min-w-0"
                                             title={profile.name}

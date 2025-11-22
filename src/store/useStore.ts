@@ -25,6 +25,7 @@ interface AppState {
     updateProfileLayout: (profileId: string, layout: WindowItem[]) => void;
     updateProfileName: (id: string, name: string) => void;
     duplicateProfile: (id: string) => void;
+    reorderProfiles: (startIndex: number, endIndex: number) => void;
     smartSortLayout: () => void;
     undoSmartSort: () => void;
 
@@ -153,6 +154,20 @@ export const useStore = create<AppState>()(
                     profiles: [...state.profiles, newProfile],
                     activeProfileId: newProfile.id,
                 }));
+            },
+
+            /**
+             * Reorders profiles by moving a profile from startIndex to endIndex
+             * @param startIndex - The index of the profile to move
+             * @param endIndex - The index where the profile should be moved to
+             */
+            reorderProfiles: (startIndex, endIndex) => {
+                set((state) => {
+                    const newProfiles = [...state.profiles];
+                    const [removed] = newProfiles.splice(startIndex, 1);
+                    newProfiles.splice(endIndex, 0, removed);
+                    return { profiles: newProfiles };
+                });
             },
 
             /**
