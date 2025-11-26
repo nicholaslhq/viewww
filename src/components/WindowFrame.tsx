@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, RefreshCw, GripHorizontal } from 'lucide-react';
+import { X, RefreshCw, GripHorizontal, Loader2 } from 'lucide-react';
 import type { WindowItem } from '../types';
 import { useStore } from '../store/useStore';
 import { useWindowMetadata } from '../hooks/useWindowMetadata';
@@ -21,6 +21,7 @@ export const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(
         const removeWindow = useStore((state) => state.removeWindow);
         const updateWindow = useStore((state) => state.updateWindow);
         const [refreshKey, setRefreshKey] = React.useState(0);
+        const [isLoading, setIsLoading] = React.useState(true);
 
         // Build proxy URL
         const proxyUrl = buildProxyUrl(PROXY_ENDPOINT, window.url, window.id);
@@ -48,6 +49,7 @@ export const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(
         });
 
         const handleRefresh = () => {
+            setIsLoading(true);
             setRefreshKey((prev) => prev + 1);
         };
 
@@ -120,7 +122,16 @@ export const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(
                         className="absolute inset-0 w-full h-full border-0"
                         title={window.title}
                         sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                        onLoad={() => setIsLoading(false)}
                     />
+                    {isLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-10">
+                            <div className="flex flex-col items-center gap-2">
+                                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">Loading...</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );
