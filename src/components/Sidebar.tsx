@@ -226,6 +226,9 @@ export function Sidebar({ isOpen, setIsOpen, onEditProfile, onDeleteProfile }: S
 
                     {/* Footer */}
                     <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                        <div className="mb-4 text-xs text-center text-gray-400 dark:text-gray-500">
+                            Created by <a href="https://nlhq.vercel.app/" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Nicholas</a>
+                        </div>
                         <ThemeToggle />
                     </div>
                 </div>
